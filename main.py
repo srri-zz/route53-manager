@@ -8,24 +8,8 @@ from boto.route53.record import ResourceRecordSets
 import argparse
 import unittest
 
-#Test Mocks
 class Tests(unittest.TestCase):
     def setUp(self):
-        
-        #self.runtime_delete = NaturalLanguage('delete web1.voice.us-east-1.steven.sh')
-        #self.runtime_change = NaturalLanguage('point 45.43.32.1 to steven.sh')
-
-        #self.runtime_get.get_action()
-        #self.runtime_get.get_objects()
-        #self.runtime_create.get_action()
-        #self.runtime_delete.get_objects()
-        #self.runtime_change.get_action()
-        #self.runtime_change.get_objects()
-
-        #self.get_result = self.runtime_get.get_operation()
-        #self.create_result = self.runtime_create.get_operation()
-        #self.delete_result = self.runtime_delete.get_operation()
-        #self.change_result = self.runtime_change.get_operation()
         self
     def test_get(self):
         self.runtime = NaturalLanguage('get me more info about google.com')
@@ -170,12 +154,21 @@ class Main():
                 zones = r53.connection.get_all_hosted_zones()
                 for z in zones['ListHostedZonesResponse']['HostedZones']:
                     if str(z['Name']) in nl.operation['parameters']['source']+'.':
-                        zone = z
-            
+                        zone = r53.get_zone_by_name(z['Name'])
+            print zone
+            print type(zone)
+            record_type = nl.operation['parameters']['type']
+            record_name = nl.operation['parameters']['source']
+            record_value = nl.operation['parameters']['dest']
             if nl.operation['action'] == 'CREATE':
-                zone.add_record(nl.operation['parameters']['type'], nl.operation['parameters']['source'], nl.operation['parameters']['dest'])
+                 zone.add_record(record_type, record_name, record_value)
             if nl.operation['action'] == 'UPSERT':
-                zone.update_record(nl.operation['parameters']['type'], nl.operation['parameters']['source'], nl.operation['parameters']['dest'])
+                if record_type == 'A':
+                    zone.update_a(record_name, record_value, ttl='300', comment='')
+                elif record_type == 'CNAME':
+                    zone.update_cname(record_name, record_value, ttl='300', comment='')
+
+            
             print zone
 
     if __name__ == '__main__':
