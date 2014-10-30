@@ -1,6 +1,6 @@
 route53-manager
 ===============
-
+<sbrichards@mit.edu>
 Tool for managing and querying AWS Route53 
 
 Proof of concept:
