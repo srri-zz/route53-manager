@@ -97,6 +97,7 @@ class NaturalLanguage():
                     self.web = word
                     self.raw.remove(word)
                     self.operation['parameters']['source'] = word
+                    self.operation['parameters']['type'] = 'CNAME'
             return True
         except KeyError:
             return False
@@ -127,7 +128,6 @@ class NaturalLanguage():
             'change':['point', 'change', 'modify', 'upsert', 'update'],
             'delete':['delete', 'destroy', 'remove'],
             'create':['create', 'add', 'define']})
-
         self.ip_regex = '[0-9]+(?:\.[0-9]+){3}'
         self.web_regex = '^([a-z0-9][a-z0-9\-]*\.)+[a-z0-9][a-z0-9\-]*$'
         self.aws_regex = 'ec2.+[0-9].+.amazonaws.com'
@@ -157,9 +157,12 @@ class Main():
                         zone = r53.get_zone_by_name(z['Name'])
             print zone
             print type(zone)
-            record_type = nl.operation['parameters']['type']
+            try:
+                record_type = nl.operation['parameters']['type']
+                record_value = nl.operation['parameters']['dest']
+            except KeyError :
+                pass
             record_name = nl.operation['parameters']['source']
-            record_value = nl.operation['parameters']['dest']
             if nl.operation['action'] == 'CREATE':
                  zone.add_record(record_type, record_name, record_value)
             if nl.operation['action'] == 'UPSERT':
@@ -167,6 +170,11 @@ class Main():
                     zone.update_a(record_name, record_value, ttl='300', comment='')
                 elif record_type == 'CNAME':
                     zone.update_cname(record_name, record_value, ttl='300', comment='')
+            if nl.operation['action'] == 'get':
+                if record_type == 'A':
+                    print zone.get_a(record_name)
+                elif record_type == 'CNAME':
+                    print zone.get_cname(record_name) 
 
             
             print zone
